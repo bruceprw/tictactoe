@@ -72,22 +72,22 @@ export const Main = () => {
     };
 
     return (
-        <div className="flex flex-col mt-10 items-center gap-10">
-            <div className="font-bold text-2xl">Tic Tac Toe</div>
+        <div className="flex flex-col mt-10 items-center gap-6">
+            <div className="font-bold text-4xl text-gray-800">Tic Tac Toe</div>
             {winner && (
-                <div className="text-xl font-bold">
+                <div className="text-2xl font-bold text-green-600">
                     {winner === "Draw" ? "It's a draw!" : `${winner} wins!`}
                 </div>
             )}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
                 {board.map((row, rowIndex) => (
-                    <div className="flex gap-1" key={rowIndex}>
+                    <div className="flex gap-2" key={rowIndex}>
                         {row.map((column, colIndex) => (
                             <div
                                 key={colIndex}
                                 role="button"
                                 tabIndex={0}
-                                className="border-2 border-gray-900 w-10 h-10 cursor-pointer items-center justify-center text-2xl font-bold flex"
+                                className="border-2 border-gray-900 w-16 h-16 cursor-pointer items-center justify-center text-3xl font-bold flex text-gray-800 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 onClick={() => handleClick(rowIndex, colIndex)}
                                 onKeyDown={(event) =>
                                     handleKeyDown(event, rowIndex, colIndex)
@@ -100,7 +100,7 @@ export const Main = () => {
                 ))}
             </div>
             <button
-                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+                className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
                 onClick={resetGame}
             >
                 Reset Game
