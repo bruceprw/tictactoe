@@ -1,0 +1,31 @@
+services:
+    backend:
+        build: ./tic-tac-toe-backend
+        ports:
+            - "5000:5000"
+        networks:
+            - tic-tac-toe-network
+        depends_on:
+            - mongo
+    frontend:
+        build: ./client
+        ports:
+            - "3000:3000"
+        networks:
+            - tic-tac-toe-network
+        environment:
+            - REACT_APP_API_BASE_URL=/api
+    mongo:
+        image: mongo:4.4
+        ports:
+            - "27017:27017"
+        networks:
+            - tic-tac-toe-network
+        volumes:
+            - mongo-data:/data/db
+volumes:
+    mongo-data:
+
+networks:
+    tic-tac-toe-network:
+        driver: bridge

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { XorO, Winner } from "./types";
 
 export const Main = () => {
@@ -10,6 +10,28 @@ export const Main = () => {
     );
     const [currentPlayer, setCurrentPlayer] = useState<XorO>("X");
     const [winner, setWinner] = useState<Winner>(undefined);
+    const [stats, setStats] = useState<{
+        wins: any[];
+        losses: any[];
+        draws: number;
+    } | null>(null);
+
+    useEffect(() => {
+        fetchStats();
+    }, []);
+
+    const fetchStats = async () => {
+        try {
+            const response = await fetch("/api/stats");
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            const data = await response.json();
+            setStats(data);
+        } catch (error) {
+            console.error("Error fetching stats:", error);
+        }
+    };
 
     const handleClick = (rowIndex: number, colIndex: number) => {
         if (board[rowIndex][colIndex] || winner) return;
@@ -51,16 +73,47 @@ export const Main = () => {
         for (const line of lines) {
             if (line[0] && line.every((cell) => cell === line[0])) {
                 setWinner(line[0]);
+                saveGameResult(line[0]);
                 return;
             }
         }
 
         if (board.flat().every((cell) => cell !== undefined)) {
             setWinner("Draw");
+            saveGameResult("Draw");
+        }
+    };
+
+    const saveGameResult = async (winner: Winner) => {
+        try {
+            const response = await fetch("/api/saveGame", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    winner: winner === "Draw" ? null : winner,
+                    loser:
+                        winner === "Draw"
+                            ? null
+                            : currentPlayer === "X"
+                            ? "O"
+                            : "X",
+                    draw: winner === "Draw",
+                }),
+            });
+            const data = await response.json();
+            console.log(data.message);
+            fetchStats();
+        } catch (error) {
+            console.error("Error saving game result:", error);
         }
     };
 
     const resetGame = () => {
+        if (winner) {
+            saveGameResult(winner);
+        }
         setBoard(
             Array.from({ length: boardSize }, () =>
                 Array(boardSize).fill(undefined)
@@ -131,6 +184,67 @@ export const Main = () => {
             >
                 Reset Game
             </button>
+            {stats && (
+                <div className="mt-4">
+                    <h2 className="text-xl font-bold">Leaderboard</h2>
+                    <table className="table-auto border-collapse border border-gray-400 mt-2">
+                        <thead>
+                            <tr>
+                                <th className="border border-gray-300 px-4 py-2">
+                                    Stat
+                                </th>
+                                <th className="border border-gray-300 px-4 py-2 text-blue-600">
+                                    X
+                                </th>
+                                <th className="border border-gray-300 px-4 py-2 text-red-600">
+                                    O
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    Wins
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {stats.wins.find((win) => win._id === "X")
+                                        ?.count || 0}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {stats.wins.find((win) => win._id === "O")
+                                        ?.count || 0}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    Losses
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {stats.losses.find(
+                                        (loss) => loss._id === "X"
+                                    )?.count || 0}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    {stats.losses.find(
+                                        (loss) => loss._id === "O"
+                                    )?.count || 0}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    Draws
+                                </td>
+                                <td
+                                    className="border border-gray-300 px-4 py-2"
+                                    colSpan={2}
+                                >
+                                    {stats.draws}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 };
